@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediNexus - Advanced Healthcare Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4b0f0f;
+            --secondary: #073611;
+            --accent: #e11d48;
+            --background: #0f172a;
+            --text: #f8fafc;
+            --card-bg: rgba(22, 22, 22, 0.9);
+            --blood-red: #ff3b30;
+            --deep-black: #0a0a0a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--deep-black);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Layers */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                linear-gradient(45deg, 
+                    var(--deep-black) 20%, 
+                    var(--blood-red) 50%, 
+                    var(--deep-black) 80%
+                );
+            opacity: 0.1;
+            animation: gradientFlow 20s infinite linear;
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 59, 48, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 59, 48, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .particle-layer {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, var(--blood-red) 20%, transparent 70%);
+            opacity: 0.1;
+            animation: particles 20s linear infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes particles {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-100vh) translateX(100vw); }
+        }
+
+        .top-bar {
+            backdrop-filter: blur(12px);
+            background: rgba(22, 22, 22, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar {
+            width: 220px;
+            background: rgba(22, 22, 22, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1rem;
+            height: calc(100vh - 140px);
+            position: fixed;
+            top: 100px;
+            left: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            z-index: 900;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .patient-search-container {
+            max-width: 800px;
+            width: 100%;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 100px auto 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .patient-search-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .patient-search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(225, 29, 72, 0.3);
+        }
+
+        .patient-details-card {
+            display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .details-section {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .upload-btn:hover {
+            background: #9f1239;
+            transform: translateY(-2px);
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+                left: 1rem;
+            }
+            
+            .patient-search-container {
+                margin: 100px 1rem 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .patient-search-container {
+                margin: 80px 1rem 2rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particle-layer">
+        <div class="particle" style="top:10%; left:20%; width:100px; height:100px; animation-delay:-5s;"></div>
+        <div class="particle" style="top:30%; left:70%; width:80px; height:80px; animation-delay:-10s;"></div>
+        <div class="particle" style="top:60%; left:40%; width:120px; height:120px; animation-delay:-15s;"></div>
+    </div>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="branding">
+            <h1>MedFlow Pro</h1>
+        </div>
+        <div class="controls">
+            <i class="fas fa-bell"></i>
+            <div class="user-profile">
+                <img src="/home/darshan/Music/medinexus/css/profile-account-picture.jpg" alt="Profile">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+            <i class="fas fa-user-injured"></i>
+            <span>Patients</span>
+        </div>
+        <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+            <i class="fas fa-hospital"></i>
+            <span>Facilities</span>
+        </div>
+        <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+            <i class="fas fa-prescription"></i>
+            <span>Pharmacy</span>
+        </div>
+        <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+            <i class="fas fa-network-wired"></i>
+            <span>Hospital to Hospital</span>
+        </div>
+        <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+            <i class="fas fa-user-md"></i>
+            <span>Doctors</span>
+        </div>
+        <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+            <i class="fas fa-user-nurse"></i>
+            <span>Special Doctor</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="patient-search-container">
+            <h1>Patient Search</h1>
+            <input type="text" 
+                   id="patientSearchInput" 
+                   class="patient-search-input"
+                   placeholder="Enter Patient ID, Aadhaar, ABHA ID, or Mobile Number" 
+                   oninput="searchPatient()">
+            
+            <div id="patientDetails" class="patient-details-card">
+                <img src="" alt="Profile Photo" class="profile-photo" id="profilePhoto">
+                <div class="details-section">
+                    <h2>Patient Information</h2>
+                    <p><strong>ID:</strong> <span id="id"></span></p>
+                    <p><strong>Name:</strong> <span id="name"></span></p>
+                    <p><strong>Date of Birth:</strong> <span id="dob"></span></p>
+                    <p><strong>ABHA ID:</strong> <span id="abhaId"></span></p>
+                    <p><strong>Aadhaar Number:</strong> <span id="aadhaarNumber"></span></p>
+                    <p><strong>Mobile Number:</strong> <span id="mobileNumber"></span></p>
+                </div>
+                <div class="details-section">
+                    <h3>Medical History</h3>
+                    <p><strong>Previous Treatments:</strong> <span id="treatments"></span></p>
+                    <p><strong>Treatments with Other Doctors:</strong> <span id="otherDoctors"></span></p>
+                </div>
+                <div class="details-section">
+                    <h3>Medical Reports</h3>
+                    <a href="" id="reportPdf" target="_blank" class="download-link">
+                        <i class="fas fa-file-pdf"></i> Download Full Report (PDF)
+                    </a>
+                </div>
+                <div class="details-section">
+                    <h3>Upload Medical Documents</h3>
+                    <form id="documentUploadForm">
+                        <input type="file" 
+                               id="medicalDocument" 
+                               accept=".pdf" 
+                               style="display: none;"
+                               onchange="handleFileUpload(event)">
+                        <label for="medicalDocument" class="upload-btn">
+                            <i class="fas fa-file-upload"></i> Upload PDF Document
+                        </label>
+                        <div id="uploadStatus" style="margin-top: 10px;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample patient data
+        const patients = [
+            {
+                id: '12345',
+                name: 'Darshan Mistari',
+                dob: '1989-05-15',
+                abhaId: 'ABHA123456789',
+                aadhaarNumber: '1234 5678 9012',
+                mobileNumber: '9876543210',
+                profilePhoto: '/home/darshan/Music/medinexus/css/profile-account-picture.jpg',
+                treatments: 'Broken Arm, Migraine',
+                otherDoctors: 'Dr. Satish Deshmukh - Cardiology, Dr. ShreeDas Gupta - Neurology',
+                reportPdf: 'https://cdn1.lalpathlabs.com/live/reports/WM17S.pdf'
+            },
+            {
+                id: '67890',
+                name: 'Satyam Mistari',
+                dob: '1995-08-25',
+                abhaId: 'ABHA987654321',
+                aadhaarNumber: '9876 5432 1098',
+                mobileNumber: '9876543211',
+                profilePhoto: '/home/darshan/Music/medinexus/css/profile-account-picture.jpg',
+                treatments: 'Broken Arm, Migraine',
+                otherDoctors: 'Dr. Gajodhar Sigh - Orthopedics, Dr. Tiwari - Dermatology',
+                reportPdf: 'https://example.com/report2.pdf'
+            }
+        ];
+
+        // Search patient function
+        function searchPatient() {
+            const searchInput = document.getElementById('patientSearchInput').value.trim().toLowerCase();
+            const patientDetailsDiv = document.getElementById('patientDetails');
+            const patient = patients.find(p => 
+                p.id.toLowerCase() === searchInput ||
+                p.abhaId.toLowerCase() === searchInput ||
+                p.aadhaarNumber.replace(/\s/g, '').toLowerCase() === searchInput ||
+                p.mobileNumber.toLowerCase() === searchInput
+            );
+
+            if (patient) {
+                document.getElementById('id').textContent = patient.id;
+                document.getElementById('name').textContent = patient.name;
+                document.getElementById('dob').textContent = patient.dob;
+                document.getElementById('abhaId').textContent = patient.abhaId;
+                document.getElementById('aadhaarNumber').textContent = patient.aadhaarNumber;
+                document.getElementById('mobileNumber').textContent = patient.mobileNumber;
+                document.getElementById('profilePhoto').src = patient.profilePhoto;
+                document.getElementById('treatments').textContent = patient.treatments;
+                document.getElementById('otherDoctors').textContent = patient.otherDoctors;
+                document.getElementById('reportPdf').href = patient.reportPdf;
+                patientDetailsDiv.style.display = 'block';
+            } else {
+                patientDetailsDiv.style.display = 'none';
+            }
+        }
+        function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "application/pdf") {
+            // Here you would typically handle the file upload to your server
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.innerHTML = `
+                <div style="color: #4ade80;">
+                    <i class="fas fa-check-circle"></i>
+                    Successfully uploaded: ${file.name}
+                </div>
+            `;
+            
+            // Add to documents list
+            const documentsList = document.createElement('div');
+            documentsList.className = 'document-item';
+            documentsList.innerHTML = `
+                <span>${file.name}</span>
+                <a href="#" class="download-link">
+                    <i class="fas fa-download"></i>
+                </a>
+            `;
+            document.querySelector('.uploaded-documents').appendChild(documentsList);
+        } else {
+            alert('Please upload a valid PDF file');
+        }
+         // Function to navigate to a specific page
+         function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+    </script>
+</body>
+</html>

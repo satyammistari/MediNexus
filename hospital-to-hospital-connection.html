@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediNexus - Advanced Healthcare Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --primary: #4b0f0f;
+            --secondary: #073611;
+            --accent: #e11d48;
+            --background: #0f172a;
+            --text: #490804;
+            --card-bg: rgba(253, 253, 253, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Gradient Background */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="10" fill="%23ffffff10"/></svg>');
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Enhanced Top Bar */
+        .top-bar {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .branding h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls .fa-bell {
+            font-size: 1.2rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Animated Sidebar */
+        .sidebar {
+            width: 220px; /* Fixed width */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1rem;
+            height: calc(100vh - 140px); /* Adjusted height */
+            position: fixed;
+            top: 100px;
+            left: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto; /* Added scroll for overflow */
+            z-index: 100; /* Ensure sidebar stays above other content */
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            margin: 0;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            flex-shrink: 0; /* Prevent item shrinking */
+            min-height: 50px; /* Minimum clickable area */
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .nav-item:nth-child(1) { animation-delay: 0.2s; }
+        .nav-item:nth-child(2) { animation-delay: 0.3s; }
+        .nav-item:nth-child(3) { animation-delay: 0.4s; }
+        .nav-item:nth-child(4) { animation-delay: 0.5s; }
+        .nav-item:nth-child(5) { animation-delay: 0.6s; }
+        .nav-item:nth-child(6) { animation-delay: 0.7s; }
+        .nav-item:nth-child(7) { animation-delay: 0.8s; }
+        .nav-item:nth-child(8) { animation-delay: 0.9s; }
+
+        .nav-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px; /* Adjusted to match sidebar width + spacing */
+            margin-top: 100px; /* Adjusted to account for top bar */
+            padding: 2rem;
+            width: calc(100% - 250px); /* Ensure it takes remaining space */
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Map Section */
+        .map-section {
+            height: 400px; /* Adjusted height */
+            margin-bottom: 2rem;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Ensure it takes full width */
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Emergency Card */
+        .emergency-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .emergency-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Hospital List */
+        .hospital-list {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        .hospital-card {
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .hospital-card:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+
+        .emergency {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .available {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-red {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-red:hover {
+            background: #9f1239;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 220px;
+                width: calc(100% - 220px);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 180px;
+                padding: 1rem;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                width: calc(100% - 200px);
+                padding: 1.5rem;
+            }
+
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                margin-top: 80px;
+                border-radius: 0;
+                border: none;
+                backdrop-filter: none;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .map-section {
+                height: 300px; /* Adjusted for smaller screens */
+            }
+
+            .nav-item {
+                justify-content: center;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="branding">
+            <h1>MediNexus</h1>
+        </div>
+        <div class="controls">
+            <i class="fas fa-bell"></i>
+            <div class="user-profile">
+                <img src="https://source.unsplash.com/random/400x400" alt="Profile">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+            <i class="fas fa-user-injured"></i>
+            <span>Patients</span>
+        </div>
+        <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+            <i class="fas fa-hospital"></i>
+            <span>Facilities</span>
+        </div>
+        <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+            <i class="fas fa-prescription"></i>
+            <span>Pharmacy</span>
+        </div>
+        <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+            <i class="fas fa-network-wired"></i>
+            <span>Hospital to Hospital</span>
+        </div>
+        <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+            <i class="fas fa-user-md"></i>
+            <span>Doctors</span>
+        </div>
+        <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+            <i class="fas fa-user-nurse"></i>
+            <span>Special Doctor</span>
+        </div>
+    </nav>
+
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>National Hospital Network</h1>
+            <p>Emergency Coordination System for Seamless Healthcare Collaboration</p>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section" id="map"></div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="emergency-card">
+                <h2>Emergency Actions</h2>
+                <div style="margin: 1.5rem 0;">
+                    <button class="btn btn-red" onclick="openEmergencyModal('blood')">
+                        <i class="fas fa-tint"></i> Request Blood
+                    </button>
+                    <button class="btn btn-red" onclick="openEmergencyModal('organ')">
+                        <i class="fas fa-heart"></i> Organ Transport
+                    </button>
+                    <button class="btn btn-red" onclick="openEmergencyModal('specialist')">
+                        <i class="fas fa-user-md"></i> Request Specialist
+                    </button>
+                </div>
+                <div id="emergencyStatus"></div>
+            </div>
+
+            <div class="hospital-list">
+                <h2>Nearby Hospitals</h2>
+                <div id="hospitalsContainer">
+                    <!-- Hospital cards will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section">
+            <h2>Cross-Hospital Communication</h2>
+            <div id="chatMessages" style="height: 300px; overflow-y: auto; margin: 1rem 0;"></div>
+            <input type="text" id="messageInput" placeholder="Type message..." style="width: 100%; padding: 1rem;">
+            <button onclick="sendMessage()" class="btn btn-red" style="margin-top: 1rem;">Send Message</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Sample hospital data
+        const hospitals = [
+            {
+                name: "AIIMS Delhi",
+                lat: 28.5663,
+                lng: 77.2066,
+                bloodBank: true,
+                organsAvailable: ["Heart", "Kidney"],
+                specialists: ["Cardiologist", "Neurologist"],
+                distance: "15 km"
+            },
+            {
+                name: "Apollo Chennai",
+                lat: 13.0395,
+                lng: 80.2504,
+                bloodBank: true,
+                organsAvailable: ["Liver"],
+                specialists: ["Oncologist"],
+                distance: "25 km"
+            }
+        ];
+
+        // Add hospital markers to map
+        hospitals.forEach(hospital => {
+            const marker = L.marker([hospital.lat, hospital.lng]).addTo(map);
+            marker.bindPopup(`
+                <b>${hospital.name}</b><br>
+                Blood Bank: ${hospital.bloodBank ? 'Available' : 'Unavailable'}<br>
+                Specialists: ${hospital.specialists.join(', ')}
+            `);
+        });
+
+        // Render hospital list
+        const hospitalsContainer = document.getElementById('hospitalsContainer');
+        hospitals.forEach(hospital => {
+            const card = document.createElement('div');
+            card.className = 'hospital-card';
+            card.innerHTML = `
+                <h3>${hospital.name}</h3>
+                <div style="margin: 0.5rem 0;">
+                    <span class="badge available">Blood Bank Available</span>
+                    <span class="badge emergency">Emergency Services</span>
+                </div>
+                <p>Distance: ${hospital.distance}</p>
+                <p>Specialists: ${hospital.specialists.join(', ')}</p>
+                <button onclick="connectToHospital('${hospital.name}')" class="btn btn-red" style="margin-top: 0.5rem;">
+                    Connect Now
+                </button>
+            `;
+            hospitalsContainer.appendChild(card);
+        });
+
+        // Emergency request functions
+        function openEmergencyModal(type) {
+            // Implement modal logic
+            alert(`Opening ${type} request form...`);
+        }
+
+        // Chat system
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messages = document.getElementById('chatMessages');
+            messages.innerHTML += `<div class="message">${input.value}</div>`;
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Connection request
+        function connectToHospital(hospitalName) {
+            alert(`Connecting to ${hospitalName}...`);
+        }
+        // Function to navigate to a specific page
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+    </script>
+</body>
+</html>

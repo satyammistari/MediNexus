@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Donor Network - MediNexus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        /* Reuse previous CSS variables and base styles */
+        :root {
+            --primary: #4b0f0f;
+            --secondary: #073611;
+            --accent: #e11d48;
+            --background: #0f172a;
+            --text: #f8fafc;
+            --card-bg: rgba(22, 22, 22, 0.9);
+            --blood-red: #ff3b30;
+            --deep-black: #0a0a0a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        .donor-container {
+            max-width: 1200px;
+            margin: 100px auto 2rem;
+            padding: 2rem;
+        }
+
+        .blood-search-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .blood-group-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .blood-group-btn {
+            padding: 1rem;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .blood-group-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .blood-group-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        #donorMap {
+            height: 500px;
+            border-radius: 20px;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .donor-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .donor-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 15px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .donor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .emergency-call {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--blood-red);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .emergency-call:hover {
+            background: #ff1a1a;
+        }
+
+        .donor-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .blood-type {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            font-weight: bold;
+            color: white;
+        }
+
+        .donor-details {
+            margin-top: 1rem;
+        }
+
+        .donor-details p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .donor-details strong {
+            color: var(--text);
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls i {
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="branding">
+            <h1>MediNexus Blood Network</h1>
+        </div>
+        <div class="controls">
+            <i class="fas fa-bell"></i>
+            <div class="user-profile">
+                <img src="profile.jpg" alt="Profile">
+            </div>
+        </div>
+    </div>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+            <i class="fas fa-user-injured"></i>
+            <span>Patients</span>
+        </div>
+        <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+            <i class="fas fa-hospital"></i>
+            <span>Facilities</span>
+        </div>
+        <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+            <i class="fas fa-prescription"></i>
+            <span>Pharmacy</span>
+        </div>
+        <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+            <i class="fas fa-network-wired"></i>
+            <span>Hospital to Hospital</span>
+        </div>
+        <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+            <i class="fas fa-user-md"></i>
+            <span>Doctors</span>
+        </div>
+        <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+            <i class="fas fa-user-nurse"></i>
+            <span>Special Doctor</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="donor-container">
+        <div class="blood-search-section">
+            <h2>Find Blood Donors Near You</h2>
+            <div class="blood-group-selector">
+                <div class="blood-group-btn" data-group="A+">A+</div>
+                <div class="blood-group-btn" data-group="A-">A-</div>
+                <div class="blood-group-btn" data-group="B+">B+</div>
+                <div class="blood-group-btn" data-group="B-">B-</div>
+                <div class="blood-group-btn" data-group="AB+">AB+</div>
+                <div class="blood-group-btn" data-group="AB-">AB-</div>
+                <div class="blood-group-btn" data-group="O+">O+</div>
+                <div class="blood-group-btn" data-group="O-">O-</div>
+            </div>
+            
+            <div id="donorMap"></div>
+            
+            <h3>Nearby Donors (UHID Verified)</h3>
+            <div class="donor-list" id="donorList">
+                <!-- Donor cards will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('donorMap').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+        // Sample donor data
+        const donors = [
+            {
+                name: "Rahul Sharma",
+                bloodGroup: "O+",
+                location: [19.0760, 72.8777],
+                distance: "1.2 km",
+                lastDonation: "2024-01-15",
+                lastDisease: "None (Eligible to donate)",
+                contact: "+911234567890",
+                verified: true
+            },
+            {
+                name: "Priya Patel",
+                bloodGroup: "B-",
+                location: [12.9716, 77.5946],
+                distance: "2.8 km",
+                lastDonation: "2024-02-01",
+                lastDisease: "Recovered from Malaria (Eligible after 3 months)",
+                contact: "+919876543210",
+                verified: true
+            }
+        ];
+
+        // Add donors to map
+        donors.forEach(donor => {
+            L.marker(donor.location)
+                .addTo(map)
+                .bindPopup(`
+                    <div class="map-popup">
+                        <h4>${donor.name}</h4>
+                        <p>Blood Group: ${donor.bloodGroup}</p>
+                        <p>Last Donation: ${donor.lastDonation}</p>
+                        <p>Last Disease/Treatment: ${donor.lastDisease}</p>
+                        <button onclick="window.location.href='tel:${donor.contact}'" 
+                                style="background:var(--blood-red); color:white; padding:8px; border-radius:5px;">
+                            <i class="fas fa-phone"></i> Emergency Call
+                        </button>
+                    </div>
+                `);
+        });
+
+        // Populate donor list
+        const donorList = document.getElementById('donorList');
+        donors.forEach(donor => {
+            const card = document.createElement('div');
+            card.className = 'donor-card';
+            card.innerHTML = `
+                <div class="donor-badge">
+                    <div class="blood-type">${donor.bloodGroup}</div>
+                    <h4>${donor.name}</h4>
+                </div>
+                <div class="donor-details">
+                    <p><strong>Distance:</strong> ${donor.distance}</p>
+                    <p><strong>Last Donation:</strong> ${donor.lastDonation}</p>
+                    <p><strong>Last Disease/Treatment:</strong> ${donor.lastDisease}</p>
+                </div>
+                <div class="emergency-call" onclick="window.location.href='tel:${donor.contact}'">
+                    <i class="fas fa-phone"></i> Emergency Call
+                </div>
+            `;
+            donorList.appendChild(card);
+        });
+
+        // Blood group filtering
+        document.querySelectorAll('.blood-group-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelector('.blood-group-btn.active')?.classList.remove('active');
+                this.classList.add('active');
+                const selectedGroup = this.dataset.group;
+                // Implement filtering logic here
+            });
+        });
+         // Function to navigate to a specific page
+         function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Network</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Root Variables */
+        :root {
+            --primary: #2563eb;
+            --secondary: #3b82f6;
+            --accent: #e11d48;
+            --background: #f8fafc;
+            --text: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuXzEiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCI+PHJlY3Qgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUiIHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZWVlZWUiLz48cmVjdCB5PSI1IiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZWVlZWVlIi8+PHJlY3QgeD0iNSIgeT0iNSIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0iI2ZmZiIvPjwvcGF0dGVybj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm5fMSkiLz48L3N2Zz4=')            linear-gradient(to bottom, #000000, #001f00);
+            background-size: 10px 10px;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.85);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .branding h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls .fa-bell {
+            font-size: 1.2rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            height: calc(100vh - 120px);
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .nav-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+        }
+
+        .nav-item span {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Main Content */
+
+        .main-content {
+
+         margin-left: 290px; /* Adjusted for sidebar width */
+
+         margin-top: 100px; /* Below the top bar */
+
+         padding: 2rem;
+
+         flex-grow: 1; /* Allow main content to grow */
+
+        transition: margin-left 0.3s ease;
+        }
+        .main-content.collapsed {
+            margin-left: 110px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: #1a73e8;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        /* Search Bar */
+        .search-bar {
+            width: 100%;
+            max-width: 600px;
+            margin: 2rem auto; /* Centered with margin */
+            padding: 1rem;
+            border: 2px solid #1a73e8;
+            border-radius: 30px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(26, 115, 232, 0.2);
+        }
+        /* Doctor Grid */
+        .doctor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem; /* Added margin to separate from search bar */
+
+        }
+
+        .doctor-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .availability-light {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .available {
+            background: #4caf50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .unavailable {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        .doctor-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 1.5rem;
+        }
+
+        .doctor-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .doctor-department {
+            color: #1a73e8;
+            margin-bottom: 1rem;
+        }
+
+        .doctor-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .doctor-details p {
+            margin: 0.5rem 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-btn, .video-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-btn {
+            background: #1a73e8;
+        }
+
+        .chat-btn:hover {
+            background: #1557b0;
+        }
+
+        .video-btn {
+            background: #e74c3c;
+        }
+
+        .video-btn:hover {
+            background: #c0392b;
+        }
+        /* Chat Section */
+        .chat-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .chat-header {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+        }
+
+        .message.sent {
+            text-align: right;
+        }
+
+        .message.received {
+            text-align: left;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .send-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            background: #1a73e8;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #1557b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctor Network</h1>
+            <p>Connect with doctors across departments for emergency collaboration</p>
+        </div>
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+                <i class="fas fa-user-injured"></i>
+                <span>Patients</span>
+            </div>
+            <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+                <i class="fas fa-hospital"></i>
+                <span>Facilities</span>
+            </div>
+            <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+                <i class="fas fa-prescription"></i>
+                <span>Pharmacy</span>
+            </div>
+            <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </div>
+            <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+                <i class="fas fa-network-wired"></i>
+                <span>Hospital to Hospital</span>
+            </div>
+            <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+                <i class="fas fa-user-md"></i>
+                <span>Doctors</span>
+            </div>
+            <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+                <i class="fas fa-user-nurse"></i>
+                <span>Special Doctor</span>
+            </div>
+        </nav>
+
+
+        <!-- Search Bar -->
+        <input type="text" class="search-bar" id="searchBar" placeholder="Search by department or specialization..." oninput="filterDoctors()">
+
+        <!-- Doctor Grid -->
+        <div class="doctor-grid" id="doctorGrid">
+            <!-- Doctor Card 1 -->
+            <div class="doctor-card" data-department="Cardiology" data-specialization="Heart Surgery">
+                <div class="availability-light available"></div>
+                <img src="https://via.placeholder.com/100" alt="Doctor Photo" class="doctor-photo">
+                <div class="doctor-name">Dr. John Doe</div>
+                <div class="doctor-department">Cardiology</div>
+                <div class="doctor-details">
+                    <p><strong>Hospital:</strong> AIIMS Delhi</p>
+                    <p><strong>Experience:</strong> 15 years</p>
+                    <p><strong>Specialization:</strong> Heart Surgery</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="chat-btn" onclick="openChat('Dr. John Doe')">
+                        <i class="fas fa-comments"></i> Chat
+                    </button>
+                    <button class="video-btn" onclick="startVideoCall('Dr. John Doe')">
+                        <i class="fas fa-video"></i> Video Call
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctor Card 2 -->
+            <div class="doctor-card" data-department="Neurology" data-specialization="Brain Surgery">
+                <div class="availability-light unavailable"></div>
+                <img src="https://via.placeholder.com/100" alt="Doctor Photo" class="doctor-photo">
+                <div class="doctor-name">Dr. Jane Smith</div>
+                <div class="doctor-department">Neurology</div>
+                <div class="doctor-details">
+                    <p><strong>Hospital:</strong> Apollo Chennai</p>
+                    <p><strong>Experience:</strong> 10 years</p>
+                    <p><strong>Specialization:</strong> Brain Surgery</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="chat-btn" onclick="openChat('Dr. Jane Smith')" disabled>
+                        <i class="fas fa-comments"></i> Unavailable
+                    </button>
+                    <button class="video-btn" onclick="startVideoCall('Dr. Jane Smith')" disabled>
+                        <i class="fas fa-video"></i> Unavailable
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add more doctor cards as needed -->
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <div class="chat-header">Chat with <span id="chatDoctorName"></span></div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Chat messages will appear here -->
+            </div>
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Collapse Toggle (Optional)
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('collapsed');
+        }
+        // Chat functionality
+        let currentChatDoctor = null;
+
+        function openChat(doctorName) {
+            document.getElementById('chatSection').style.display = 'block';
+            document.getElementById('chatDoctorName').textContent = doctorName;
+            currentChatDoctor = doctorName;
+            document.getElementById('chatMessages').innerHTML = ''; // Clear previous chat
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            if (input.value.trim() !== '') {
+                messages.innerHTML += `
+                    <div class="message sent">
+                        <strong>You:</strong> ${input.value}
+                    </div>
+                `;
+                // Simulate a response
+                setTimeout(() => {
+                    messages.innerHTML += `
+                        <div class="message received">
+                            <strong>${currentChatDoctor}:</strong> Thank you for your message. I will respond shortly.
+                        </div>
+                    `;
+                    messages.scrollTop = messages.scrollHeight;
+                }, 1000);
+                input.value = '';
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        // Video Call Functionality
+        function startVideoCall(doctorName) {
+            alert(`Starting video call with ${doctorName}...`);
+            // Integrate with WebRTC or a video call API like Twilio, Zoom, or Agora
+        }
+
+        // Search Bar Functionality
+        function filterDoctors() {
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            const doctorCards = document.querySelectorAll('.doctor-card');
+
+            doctorCards.forEach(card => {
+                const department = card.getAttribute('data-department').toLowerCase();
+                const specialization = card.getAttribute('data-specialization').toLowerCase();
+
+                if (department.includes(searchTerm) || specialization.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Real-Time Availability (Simulated)
+        setInterval(() => {
+            const availabilityLights = document.querySelectorAll('.availability-light');
+            availabilityLights.forEach(light => {
+                light.classList.toggle('available', Math.random() > 0.5); // Random availability
+                light.classList.toggle('unavailable', Math.random() <= 0.5);
+            });
+        }, 5000); // Update every 5 seconds
+        // Function to navigate to a specific page
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

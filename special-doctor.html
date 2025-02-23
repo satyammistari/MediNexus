@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialist Doctors Schedule</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Root Variables */
+        :root {
+            --primary: #4b0f0f;
+            --secondary: #073611;
+            --accent: #e11d48;
+            --background: #0f172a;
+            --text: #490804;
+            --card-bg: rgba(253, 253, 253, 0.95);
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Gradient Background */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="10" fill="%23ffffff10"/></svg>');
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Enhanced Top Bar */
+        .top-bar {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .branding h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .controls .fa-bell {
+            font-size: 1.2rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Animated Sidebar */
+        .sidebar {
+            width: 220px; /* Fixed width */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1rem;
+            height: calc(100vh - 140px); /* Adjusted height */
+            position: fixed;
+            top: 100px;
+            left: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto; /* Added scroll for overflow */
+            z-index: 100; /* Ensure sidebar stays above other content */
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            margin: 0;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            flex-shrink: 0; /* Prevent item shrinking */
+            min-height: 50px; /* Minimum clickable area */
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .nav-item:nth-child(1) { animation-delay: 0.2s; }
+        .nav-item:nth-child(2) { animation-delay: 0.3s; }
+        .nav-item:nth-child(3) { animation-delay: 0.4s; }
+        .nav-item:nth-child(4) { animation-delay: 0.5s; }
+        .nav-item:nth-child(5) { animation-delay: 0.6s; }
+        .nav-item:nth-child(6) { animation-delay: 0.7s; }
+        .nav-item:nth-child(7) { animation-delay: 0.8s; }
+        .nav-item:nth-child(8) { animation-delay: 0.9s; }
+
+        .nav-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px; /* Adjusted to match sidebar width + spacing */
+            margin-top: 100px; /* Adjusted to account for top bar */
+            padding: 2rem;
+            width: calc(100% - 250px); /* Ensure it takes remaining space */
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Filter Buttons */
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+        }
+
+        .filter-btn:hover {
+            background: #1e40af;
+        }
+
+        /* Doctor Grid */
+        .doctor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .doctor-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .available {
+            background: #e8f5e9;
+            color: #43a047;
+        }
+
+        .unavailable {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .doctor-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-timeline {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .time-slot {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .book-btn:hover {
+            background: #1e40af;
+        }
+
+        .book-btn:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+
+        /* Appointment Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                margin-top: 80px;
+                border-radius: 0;
+                border: none;
+                backdrop-filter: none;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                margin-top: 20px;
+            }
+
+            .doctor-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-item {
+                justify-content: center;
+            }
+
+            .nav-item span {
+                display: none;
+            }
+            .nav-item.active {
+                background: var(--primary);
+                color: white;
+                transform: translateX(8px);
+                box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="branding">
+            <h1>MedFlow Pro</h1>
+        </div>
+        <div class="controls">
+            <i class="fas fa-bell"></i>
+            <div class="user-profile">
+                <img src="https://source.unsplash.com/random/400x400" alt="Profile">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+<nav class="sidebar">
+    <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+        <i class="fas fa-user-injured"></i>
+        <span>Patients</span>
+    </div>
+    <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+        <i class="fas fa-hospital"></i>
+        <span>Facilities</span>
+    </div>
+    <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+        <i class="fas fa-prescription"></i>
+        <span>Pharmacy</span>
+    </div>
+    <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+        <i class="fas fa-chart-line"></i>
+        <span>Analytics</span>
+    </div>
+    <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+        <i class="fas fa-network-wired"></i>
+        <span>Hospital to Hospital</span>
+    </div>
+    <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+        <i class="fas fa-user-md"></i>
+        <span>Doctors</span>
+    </div>
+    <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+        <i class="fas fa-user-nurse"></i>
+        <span>Special Doctor</span>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+
+
+        <!-- Filter Buttons -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterDoctors('all')">All Specialists</button>
+            <button class="filter-btn" onclick="filterDoctors('available')">Available Now</button>
+            <button class="filter-btn" onclick="filterDoctors('specialist')">Specialist Doctors</button>
+        </div>
+
+        <!-- Doctor Grid -->
+        <div class="doctor-grid" id="doctorGrid">
+            <!-- Cardiologist -->
+            <div class="doctor-card" data-availability="available" data-specialization="Cardiology">
+                <span class="status-badge available">Available Now</span>
+                <img src="https://via.placeholder.com/100" alt="Dr. Sharma" class="doctor-photo">
+                <h2>Dr. Ramesh Sharma</h2>
+                <p class="department">Cardiology</p>
+                
+                <div class="schedule-timeline">
+                    <h3>Today's Schedule</h3>
+                    <div class="time-slot">
+                        <span>10:00 AM</span>
+                        <span>12:00 PM</span>
+                    </div>
+                    <div class="time-slot">
+                        <span>2:00 PM</span>
+                        <span>4:00 PM</span>
+                    </div>
+                </div>
+                
+                <button class="book-btn" onclick="openBookingModal('Dr. Ramesh Sharma')">
+                    Book Appointment
+                </button>
+            </div>
+
+            <!-- Neurologist -->
+            <div class="doctor-card" data-availability="unavailable" data-specialization="Neurology">
+                <span class="status-badge unavailable">Offline</span>
+                <img src="https://via.placeholder.com/100" alt="Dr. Gupta" class="doctor-photo">
+                <h2>Dr. Anjali Gupta</h2>
+                <p class="department">Neurology</p>
+                
+                <div class="schedule-timeline">
+                    <h3>Today's Schedule</h3>
+                    <div class="time-slot">
+                        <span>11:00 AM</span>
+                        <span>1:00 PM</span>
+                    </div>
+                    <div class="time-slot">
+                        <span>3:00 PM</span>
+                        <span>5:00 PM</span>
+                    </div>
+                </div>
+                <!-- Dermatologist -->
+            <div class="doctor-card" data-availability="available" data-specialization="Dermatology">
+                <span class="status-badge available">Available Now</span>
+                <img src="https://via.placeholder.com/100" alt="Dr. Kapoor" class="doctor-photo">
+                <h2>Dr. Priya Kapoor</h2>
+                <p class="department">Dermatology</p>
+                
+                <div class="schedule-timeline">
+                    <h3>Today's Schedule</h3>
+                    <div class="time-slot">
+                        <span>9:00 AM</span>
+                        <span>11:00 AM</span>
+                    </div>
+                    <div class="time-slot">
+                        <span>1:00 PM</span>
+                        <span>3:00 PM</span>
+                    </div>
+                </div>
+                
+                <button class="book-btn" disabled>Not Available</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <h2 id="modalDoctorName"></h2>
+            <form id="appointmentForm" onsubmit="bookAppointment(event)">
+                <div class="form-group">
+                    <label>Select Time Slot:</label>
+                    <select id="timeSlot" required>
+                        <option value="10:00 AM">10:00 AM - 11:00 AM</option>
+                        <option value="11:00 AM">11:00 AM - 12:00 PM</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Patient Name:</label>
+                    <input type="text" id="patientName" required>
+                </div>
+                
+                <button type="submit" class="book-btn">Confirm Appointment</button>
+                <button type="button" class="book-btn" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Filter doctors
+        function filterDoctors(filter) {
+            const cards = document.querySelectorAll('.doctor-card');
+            cards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'block';
+                } else if (filter === 'available') {
+                    card.style.display = card.dataset.availability === 'available' ? 'block' : 'none';
+                } else if (filter === 'specialist') {
+                    card.style.display = card.dataset.specialization ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Modal handling
+        function openBookingModal(doctorName) {
+            document.getElementById('modalDoctorName').textContent = doctorName;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+        }
+
+        // Appointment booking
+        function bookAppointment(event) {
+            event.preventDefault();
+            const doctorName = document.getElementById('modalDoctorName').textContent;
+            const timeSlot = document.getElementById('timeSlot').value;
+            const patientName = document.getElementById('patientName').value;
+            
+            alert(`Appointment booked!\nDoctor: ${doctorName}\nTime: ${timeSlot}\nPatient: ${patientName}`);
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('bookingModal')) {
+                closeModal();
+            }
+        }
+        // Function to navigate to a specific page
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    
+    </script>
+</body>
+</html>

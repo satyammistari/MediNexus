@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediNexus - Advanced Healthcare Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --primary: #4b0f0f;
+            --secondary: #073611;
+            --accent: #e11d48;
+            --background: #0f172a;
+            --text: #490804;
+            --card-bg: rgba(253, 253, 253, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #334155);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Gradient Background */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="10" fill="%23ffffff10"/></svg>');
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Enhanced Top Bar */
+        .top-bar {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animated Sidebar */
+        .sidebar {
+            width: 220px; /* Reduced width */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 1rem; 
+            height: calc(100vh - 140px); /* Adjusted height */
+            position: fixed;
+            top: 100px;
+            left: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto; /* Added scroll for overflow */
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem; /* Added gap between items */
+        }
+
+        /* Main Content Area */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 220px 1fr; /* Adjusted grid columns */
+            gap: 1.5rem;
+            margin-top: 80px;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            margin: 0;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            flex-shrink: 0; /* Prevent item shrinking */
+            min-height: 50px; /* Minimum clickable area */
+        }
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .nav-item:nth-child(1) { animation-delay: 0.2s; }
+        .nav-item:nth-child(2) { animation-delay: 0.3s; }
+        .nav-item:nth-child(3) { animation-delay: 0.4s; }
+        .nav-item:nth-child(4) { animation-delay: 0.5s; }
+        .nav-item:nth-child(5) { animation-delay: 0.6s; }
+        .nav-item:nth-child(6) { animation-delay: 0.7s; }
+        .nav-item:nth-child(7) { animation-delay: 0.8s; }
+        .nav-item:nth-child(8) { animation-delay: 0.9s; }
+
+        .nav-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        /* Facilities Container */
+        .facilities-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            margin-left: 260px; /* Adjusted to account for sidebar width */
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h1 {
+            font-size: 2.5rem;
+            color: #1a73e8;
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 2rem;
+            border: 2px solid #1a73e8;
+            border-radius: 30px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(26, 115, 232, 0.2);
+        }
+
+        .facility-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .facility-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .facility-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: #1a73e8;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .facility-list {
+            list-style: none;
+        }
+
+        .facility-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+
+        .facility-item:last-child {
+            border-bottom: none;
+        }
+
+        .facility-item i {
+            color: #1a73e8;
+            margin-right: 0.8rem;
+            width: 25px;
+        }
+
+        .availability {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .available {
+            background: #e8f5e9;
+            color: #43a047;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .sidebar {
+                height: auto;
+                position: relative;
+                top: 0;
+                margin-right: 0;
+                margin-bottom: 1.5rem;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr; /* Fixed incomplete rule */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .patient-avatar {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="branding">
+            <h1>MediNexus</h1>
+        </div>
+        <div class="controls">
+            <i class="fas fa-bell"></i>
+            <div class="user-profile">
+                <img src="/home/darshan/Music/medinexus/css/profile-account-picture.jpg" alt="Profile">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="nav-item" data-page="dashboard" onclick="navigateTo('index.html')">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item" data-page="patients" onclick="navigateTo('patient.html')">
+            <i class="fas fa-user-injured"></i>
+            <span>Patients</span>
+        </div>
+        <div class="nav-item" data-page="facilities" onclick="navigateTo('facilities.html')">
+            <i class="fas fa-hospital"></i>
+            <span>Facilities</span>
+        </div>
+        <div class="nav-item" data-page="pharmacy" onclick="navigateTo('pharmacy.html')">
+            <i class="fas fa-prescription"></i>
+            <span>Pharmacy</span>
+        </div>
+        <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics.html')">
+            <i class="fas fa-chart-line"></i>
+            <span>Analytics</span>
+        </div>
+        <div class="nav-item" data-page="connection" onclick="navigateTo('hospital-to-hospital-connection.html')">
+            <i class="fas fa-network-wired"></i>
+            <span>Hospital to Hospital</span>
+        </div>
+        <div class="nav-item" data-page="doctors" onclick="navigateTo('doctor.html')">
+            <i class="fas fa-user-md"></i>
+            <span>Doctors</span>
+        </div>
+        <div class="nav-item" data-page="special-doctor" onclick="navigateTo('special-doctor.html')">
+            <i class="fas fa-user-nurse"></i>
+            <span>Special Doctor</span>
+        </div>
+    </nav>
+
+    <!-- Facilities Container -->
+    <div class="facilities-container">
+        <div class="section-header">
+            <h1>Our World-Class Facilities</h1>
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search facilities...">
+            </div>
+        </div>
+        <div class="facility-grid">
+            <!-- Emergency Services -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-ambulance"></i></div>
+                    <h3 class="card-title">Emergency Care</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-clock"></i>24/7 Emergency Services
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-user-md"></i>Trauma Center
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-heartbeat"></i>Cardiac Emergency Unit
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+
+            <!-- Medical Services -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-hospital"></i></div>
+                    <h3 class="card-title">Medical Services</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-x-ray"></i>Advanced Imaging
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-dna"></i>Genetic Testing
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-procedures"></i>Robotic Surgery
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+
+            <!-- Patient Amenities -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-hotel"></i></div>
+                    <h3 class="card-title">Patient Amenities</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-wifi"></i>Free WiFi
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-utensils"></i>Nutrition Services
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-wheelchair"></i>Accessibility Features
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+
+            <!-- Specialized Care -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-star-of-life"></i></div>
+                    <h3 class="card-title">Specialized Care</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-brain"></i>Neuroscience Center
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-baby"></i>Neonatal ICU
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-lungs"></i>Pulmonary Rehabilitation
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+
+            <!-- Technology -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-microchip"></i></div>
+                    <h3 class="card-title">Technology</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-robot"></i>AI Diagnostics
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-tablet-alt"></i>Digital Health Records
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-video"></i>Telemedicine
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+
+            <!-- Support Services -->
+            <div class="facility-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-hands-helping"></i></div>
+                    <h3 class="card-title">Support Services</h3>
+                </div>
+                <ul class="facility-list">
+                    <li class="facility-item">
+                        <i class="fas fa-comments"></i>Patient Counseling
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-translate"></i>Multilingual Staff
+                    </li>
+                    <li class="facility-item">
+                        <i class="fas fa-paw"></i>Pet Therapy
+                    </li>
+                </ul>
+                <span class="availability available">Available</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        const facilityCards = document.querySelectorAll('.facility-card');
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            facilityCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+        // Function to navigate to a specific page
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        // Highlight the active page in the sidebar
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            const page = item.getAttribute('data-page');
+            if (currentPage.includes(page)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+        
+
+    </script>
+</body>
+</html>
